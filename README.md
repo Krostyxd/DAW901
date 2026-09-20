@@ -1,16 +1,27 @@
-# React + Vite
+Sistema Web para Gestión Operativa para Comercio KFC
+Etapa 2 – Entrega Parcial HTML/CSS/JS
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+Este proyecto consiste en el desarrollo de un sistema web para la gestión operativa del comercio KFC, enfocado en optimizar procesos internos como pedidos, inventario y reportes. En esta etapa se entrega la estructura inicial del frontend utilizando HTML, CSS y JavaScript.
 
-Currently, two official plugins are available:
+ Integrantes del Equipo
+-Daniel Alexander Benavides Rivera — BR262817
+-Keisy Minely Portillo Colocho — PC171198
+-Pablo Ernesto Vanegas Gámez — EV232903
+-Josué Amilcar Castro Osorio — CO251195
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+Detalle Técnico de la Etapa 2
+En esta entrega se incluye:
 
-## React Compiler
+-Maquetación HTML de las vistas principales del sistema
+-Estilos base en CSS (layout, colores, tipografía, responsive inicial)
+-Primeras funciones en JavaScript (interacciones básicas, navegación, validaciones simples)
+-Organización del proyecto en carpetas para facilitar la siguiente etapa
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+Tecnologías Utilizadas
+Lista simple:
 
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and Oxlint's TypeScript related rules in your project.
+-HTML5
+-CSS3
+-JavaScript
+-Vite + React (si aplica)
+-Git / GitHub
