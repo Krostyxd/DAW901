@@ -1,94 +1,222 @@
-// Claves maestras para localStorage
+/**
+ * ============================================================
+ * storageService.js — Persistencia, Seed Data y Formateadores KFC (React)
+ * ============================================================
+ * Cátedra: DAW901 — Universidad Don Bosco
+ * Módulo: Persistencia Global, Catálogo y Pedidos
+ * Autor: Daniel Alexander Benavides Rivera
+ * ============================================================
+ */
+
 export const STORAGE_KEYS = {
-  USERS: "kfc_users",
-  SESSION: "kfc_session",
-  ORDERS: "kfc_orders",
-  MENU: "kfc_menu",
-  INVENTORY: "kfc_inventory"
+  USERS: 'kfc_users',
+  SESSION: 'kfc_session',
+  MENU: 'kfc_menu',
+  ORDERS: 'kfc_orders'
 };
 
-// Estados permitidos de los pedidos
 export const ESTADOS_PEDIDO = {
-  PENDIENTE: "Pendiente",
-  EN_PREPARACION: "En Preparación",
-  LISTO: "Listo",
-  ENTREGADO: "Entregado",
-  CANCELADO: "Cancelado"
+  PENDIENTE: 'pendiente',
+  EN_PREPARACION: 'en_preparacion',
+  LISTO: 'listo',
+  ENTREGADO: 'entregado',
+  CANCELADO: 'cancelado'
 };
 
-// Menú inicial semilla
 export const INITIAL_MENU = [
   {
-    id: "PROD-01",
-    name: "Combo Coronel Clásico",
-    price: 5.99,
-    category: "Combos",
-    stock: 25,
-    description: "2 piezas de pollo, puré y ensalada",
-    image: "https://images.unsplash.com/photo-1626082927389-6cd097cdc6ec?w=400"
+    id: 'PRD-01',
+    categoria: 'Combos',
+    nombre: 'Mega Pack Familiar',
+    precio: 24.99,
+    stock: 35,
+    img: 'https://images.unsplash.com/photo-1626082927389-6cd097cdc6ec?w=400&q=80',
+    descripcion: '8 piezas de pollo crujiente, 4 biscuits y 2 complementos familiares'
   },
   {
-    id: "PROD-02",
-    name: "Mega Bucket 8 Piezas",
-    price: 14.50,
-    category: "Buckets",
-    stock: 15,
-    description: "8 piezas de pollo con receta secreta",
-    image: "https://images.unsplash.com/photo-1513639776629-7b61b0ac49cb?w=400"
+    id: 'PRD-02',
+    categoria: 'Combos',
+    nombre: 'Wow Pack 4 Piezas',
+    precio: 13.99,
+    stock: 40,
+    img: 'https://images.unsplash.com/photo-1513639776629-7b61b0ac49cb?w=400&q=80',
+    descripcion: '4 piezas de pollo tradicional, 2 papas medianas y 2 gaseosas'
   },
   {
-    id: "PROD-03",
-    name: "Sandwich Kentucky Deluxe",
-    price: 4.75,
-    category: "Sandwiches",
-    stock: 30,
-    description: "Filete de pechuga crujiente con queso y mayonesa",
-    image: "https://images.unsplash.com/photo-1606755962773-d324e0a13086?w=400"
-  },
-  {
-    id: "PROD-04",
-    name: "Papas Fritas Medianas",
-    price: 1.50,
-    category: "Complementos",
+    id: 'PRD-03',
+    categoria: 'Boxes',
+    nombre: 'Combo Kruncher Box',
+    precio: 8.50,
     stock: 50,
-    description: "Papas doradas al estilo KFC",
-    image: "https://images.unsplash.com/photo-1576107232684-1279f3908594?w=400"
-  }
-];
-
-// Pedidos iniciales para demostración
-export const INITIAL_ORDERS = [
+    img: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400&q=80',
+    descripcion: 'Hamburguesa Kruncher, 1 pieza de pollo, papas y bebida'
+  },
   {
-    id: "ORD-101",
-    cliente: "Mostrador General",
-    fecha: new Date().toISOString(),
-    total: 10.74,
-    estado: ESTADOS_PEDIDO.ENTREGADO,
-    metodoPago: "Efectivo",
-    items: [
-      { id: "PROD-01", name: "Combo Coronel Clásico", cantidad: 1, price: 5.99 },
-      { id: "PROD-03", name: "Sandwich Kentucky Deluxe", cantidad: 1, price: 4.75 }
-    ]
+    id: 'PRD-04',
+    categoria: 'Pollo',
+    nombre: 'Pollo Frito Tradicional (2 Pzs)',
+    precio: 4.75,
+    stock: 65,
+    img: 'https://images.unsplash.com/photo-1587593810167-a84920ea0781?w=400&q=80',
+    descripcion: '2 jugosas piezas con la receta secreta original del Coronel'
+  },
+  {
+    id: 'PRD-05',
+    categoria: 'Pollo',
+    nombre: 'Combo Boneless Dippers',
+    precio: 6.50,
+    stock: 4, // Stock crítico (< 5) para pruebas de alerta visual
+    img: 'https://images.unsplash.com/photo-1562967914-608f82629710?w=400&q=80',
+    descripcion: 'Trocitos de pechuga empanizados con salsa BBQ'
+  },
+  {
+    id: 'PRD-06',
+    categoria: 'Complementos',
+    nombre: 'Papas Fritas Medianas',
+    precio: 2.25,
+    stock: 80,
+    img: 'https://images.unsplash.com/photo-1576107232684-1279f3908594?w=400&q=80',
+    descripcion: 'Papas doradas al estilo crujiente y sazonadas'
+  },
+  {
+    id: 'PRD-07',
+    categoria: 'Complementos',
+    nombre: 'Puré de Papa con Gravy',
+    precio: 1.50,
+    stock: 3, // Stock crítico (< 5)
+    img: 'https://images.unsplash.com/photo-1519915028121-7d346b7240c2?w=400&q=80',
+    descripcion: 'Clásico puré suave bañado con salsa gravy tradicional'
+  },
+  {
+    id: 'PRD-08',
+    categoria: 'Bebidas',
+    nombre: 'Gaseosa en Lata 355ml',
+    precio: 1.25,
+    stock: 120,
+    img: 'https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=400&q=80',
+    descripcion: 'Pepsi, Pepsi Black, 7Up o Mirinda bien fría'
   }
 ];
 
-// Formateador de moneda en USD
-export const formatCurrency = (amount) => {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD"
-  }).format(amount || 0);
+export const INITIAL_ORDERS = () => {
+  const hoy = new Date();
+  const hace1Hora = new Date(hoy.getTime() - 60 * 60 * 1000).toISOString();
+  const hace3Horas = new Date(hoy.getTime() - 3 * 60 * 60 * 1000).toISOString();
+  const hace5Horas = new Date(hoy.getTime() - 5 * 60 * 60 * 1000).toISOString();
+
+  return [
+    {
+      id: 'PED-001',
+      cliente: 'Carlos Mendoza',
+      cajeroId: 'USR-02',
+      cajeroNombre: 'Cajero Principal',
+      tipoPago: 'Efectivo',
+      estado: ESTADOS_PEDIDO.ENTREGADO,
+      fecha: hace5Horas,
+      items: [
+        { id: 'PRD-01', nombre: 'Mega Pack Familiar', precio: 24.99, quantity: 1, subtotal: 24.99 },
+        { id: 'PRD-08', nombre: 'Gaseosa en Lata 355ml', precio: 1.25, quantity: 2, subtotal: 2.50 }
+      ],
+      subtotal: 24.33,
+      iva: 3.16,
+      total: 27.49
+    },
+    {
+      id: 'PED-002',
+      cliente: 'Mariana Flores',
+      cajeroId: 'USR-02',
+      cajeroNombre: 'Cajero Principal',
+      tipoPago: 'Digital',
+      estado: ESTADOS_PEDIDO.EN_PREPARACION,
+      fecha: hace3Horas,
+      items: [
+        { id: 'PRD-03', nombre: 'Combo Kruncher Box', precio: 8.50, quantity: 2, subtotal: 17.00 }
+      ],
+      subtotal: 15.04,
+      iva: 1.96,
+      total: 17.00
+    },
+    {
+      id: 'PED-003',
+      cliente: 'Roberto Palacios',
+      cajeroId: 'USR-02',
+      cajeroNombre: 'Cajero Principal',
+      tipoPago: 'Efectivo',
+      estado: ESTADOS_PEDIDO.PENDIENTE,
+      fecha: hace1Hora,
+      items: [
+        { id: 'PRD-04', nombre: 'Pollo Frito Tradicional (2 Pzs)', precio: 4.75, quantity: 1, subtotal: 4.75 },
+        { id: 'PRD-06', nombre: 'Papas Fritas Medianas', precio: 2.25, quantity: 1, subtotal: 2.25 }
+      ],
+      subtotal: 6.19,
+      iva: 0.81,
+      total: 7.00
+    },
+    {
+      id: 'PED-004',
+      cliente: 'Andrea Gómez',
+      cajeroId: 'USR-02',
+      cajeroNombre: 'Cajero Principal',
+      tipoPago: 'Digital',
+      estado: ESTADOS_PEDIDO.CANCELADO,
+      fecha: hace5Horas,
+      items: [
+        { id: 'PRD-02', nombre: 'Wow Pack 4 Piezas', precio: 13.99, quantity: 1, subtotal: 13.99 }
+      ],
+      subtotal: 12.38,
+      iva: 1.61,
+      total: 13.99
+    }
+  ];
 };
 
-// Formateador de fechas
-export const formatDate = (dateString) => {
-  if (!dateString) return "";
-  const date = new Date(dateString);
-  return date.toLocaleDateString("es-SV", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit"
-  });
-};
+/**
+ * Formatea valor a moneda estadounidense ($XX.XX)
+ */
+export function formatCurrency(amount) {
+  const num = parseFloat(amount) || 0;
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  }).format(num);
+}
+
+/**
+ * Formatea fechas a horario local de El Salvador (es-SV)
+ */
+export function formatDate(dateInput, includeTime = true) {
+  if (!dateInput) return '—';
+  const date = new Date(dateInput);
+  if (isNaN(date.getTime())) return '—';
+
+  const options = {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric'
+  };
+
+  if (includeTime) {
+    options.hour = '2-digit';
+    options.minute = '2-digit';
+    options.hour12 = true;
+  }
+
+  return date.toLocaleString('es-SV', options);
+}
+
+/**
+ * Validador de número positivo
+ */
+export function isPositiveNumber(val) {
+  const num = parseFloat(val);
+  return !isNaN(num) && num > 0;
+}
+
+/**
+ * Validador de texto no vacío
+ */
+export function isNonEmptyString(str) {
+  return typeof str === 'string' && str.trim().length > 0;
+}
