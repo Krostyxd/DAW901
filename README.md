@@ -25,3 +25,11 @@ Lista simple:
 -JavaScript
 -Vite + React (si aplica)
 -Git / GitHub
+
+Enlace 
+https://daw-901.vercel.app?_vercel_share=KqAEfS7RCprTyvbppBYj2VCZqPIJyae8
+
+Usuarios 
+Admin: admin@kfc.sv 
+Cajero: cajero@kfc.sv
+Contraseña: password123
