@@ -2,6 +2,7 @@ import { useState } from 'react';
 import Header from '../components/Header';
 import { useAuth } from '../context/AuthContext';
 import { formatCurrency, formatDate } from '../services/storageService';
+import MonthlySalesChart from '../components/MonthlySalesChart';
 
 export default function AdminDashboard() {
   const { user, products, orders, getUsers, calculateMetrics } = useAuth();
@@ -199,8 +200,7 @@ export default function AdminDashboard() {
                 <button
                   key={c.id}
                   onClick={() => setCurrentCategory(c.id)}
-                  className={`btn btn-sm text-nowrap rounded-pill px-3 py-1 ${currentCategory === c.id ? 'btn-danger fw-bold' : 'btn-light border'}`}
-                >
+                  className={`btn btn-sm text-nowrap rounded-pill px-3 py-1 ${currentCategory === c.id ? 'btn-danger fw-bold' : 'btn-light border'}`}>
                   {c.name}
                 </button>
               ))}
@@ -290,6 +290,8 @@ export default function AdminDashboard() {
                 </div>
               </div>
             </div>
+
+            <MonthlySalesChart />
 
             <div className="table-responsive">
               <table className="table table-hover align-middle">
