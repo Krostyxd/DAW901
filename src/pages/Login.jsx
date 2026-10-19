@@ -1,273 +1,410 @@
 import { useState } from 'react';
-import { useNavigate, Navigate } from 'react-router-dom';
+import Header from '../components/Header';
 import { useAuth } from '../context/AuthContext';
+import { formatCurrency, formatDate } from '../services/storageService';
+import MonthlySalesChart from '../components/MonthlySalesChart';
 
-export default function Login() {
-  const { user, login, registerUser, ROLES } = useAuth();
-  const navigate = useNavigate();
+export default function AdminDashboard() {
+  const { user, products, orders, getUsers, calculateMetrics } = useAuth();
 
-  const [step, setStep] = useState('login');
-  const [loading, setLoading] = useState(false);
-  const [alertMsg, setAlertMsg] = useState(null);
+  const [activeTab, setActiveTab] = useState('menu');
+  const [currentCategory, setCurrentCategory] = useState('Combos');
 
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const usersList = getUsers();
+  const metrics = calculateMetrics();
 
-  const [registerData, setRegisterData] = useState({
-    nombre: '',
-    fechaNacimiento: '',
-    telefono: '',
-    direccion: '',
-    email: '',
-    password: ''
-  });
+  const categories = [
+    { id: 'Combos', name: 'Combos' },
+    { id: 'Boxes', name: 'Boxes' },
+    { id: 'Pollo', name: 'Pollo' },
+    { id: 'Complementos', name: 'Complementos' },
+    { id: 'Bebidas', name: 'Bebidas' }
+  ];
 
-  if (user) {
-    return <Navigate to={user.rol === ROLES.ADMIN ? '/admin' : '/cajero'} replace />;
-  }
+  const filteredProducts = products.filter(
+    p => p.categoria.toLowerCase() === currentCategory.toLowerCase()
+  );
 
-  const handleLogin = (e) => {
-    e.preventDefault();
-    setAlertMsg(null);
-    setLoading(true);
-
-    setTimeout(() => {
-      const res = login(email, password);
-      if (res.success) {
-        navigate(res.rol === ROLES.ADMIN ? '/admin' : '/cajero');
-      } else {
-        setAlertMsg(res.message);
-      }
-      setLoading(false);
-    }, 400);
-  };
-
-  const handleRegister = (e) => {
-    e.preventDefault();
-    setAlertMsg(null);
-    setLoading(true);
-
-    setTimeout(() => {
-      const res = registerUser({
-        ...registerData,
-        rol: ROLES.CAJERO
-      });
-
-      if (res.success) {
-        setAlertMsg('Registro exitoso. Inicia sesión con tus credenciales.');
-        setStep('login');
-        setEmail(registerData.email);
-        setPassword(registerData.password);
-      } else {
-        setAlertMsg(res.message);
-      }
-      setLoading(false);
-    }, 400);
-  };
+  const placeholderImg = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="60" height="40"><rect width="100%" height="100%" fill="%23f3f3f3"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-size="10" fill="%23888">no image</text></svg>';
 
   return (
-    <div className="kfc-app-container justify-content-center align-items-center py-4 px-3">
-      {step === 'login' && (
-        <div className="kfc-auth-card kfc-auth-card-wide">
-          <div className="kfc-auth-side-banner d-none d-lg-flex">
-            <div className="bg-white p-3 rounded-4 shadow-sm mb-4" style={{ width: '150px' }}>
-              <img src="/mockups/logo1.png" alt="KFC" className="img-fluid" />
-            </div>
-            <h2 className="fw-bold mb-2">Sistema Operativo </h2>
-            <p className="small text-white-50 mb-4">Gestión integral de restaurantes KFC El Salvador</p>
-            <div className="border-top border-white border-opacity-25 pt-3 w-100 small text-white-50">
-              <div>DAW901 — Universidad Don Bosco</div>
-              
+    <div className="kfc-app-container">
+      <Header title="Panel de Administración" showCart={false} />
+
+      <main className="kfc-main-content">
+        <div className="row g-3 mb-4">
+          <div className="col-12 col-sm-6 col-lg-3">
+            <div className="stat-card">
+              <div className="d-flex align-items-center justify-content-between">
+                <div>
+                  <div className="stat-number">{usersList.length}</div>
+                  <div className="stat-label">Usuarios Registrados</div>
+                </div>
+                <div className="stat-icon"><i className="bi bi-people"></i></div>
+              </div>
+              <div className="small text-muted mt-2">
+                <span className="fw-bold text-danger">
+                  {usersList.filter(u => u.rol === 'admin').length} Admins
+                </span> | <span className="fw-bold text-primary">
+                  {usersList.filter(u => u.rol === 'cajero').length} Cajeros
+                </span>
+              </div>
             </div>
           </div>
 
-          <div className="kfc-auth-side-form">
-            <div className="bg-danger text-center py-3 d-lg-none" style={{ background: '#E4002B', margin: '-3rem -2.5rem 1.5rem -2.5rem' }}>
-              <div className="bg-white d-inline-block p-2 rounded-3 shadow-sm" style={{ width: '130px' }}>
-                <img src="/mockups/logo1.png" alt="KFC" className="img-fluid" />
+          <div className="col-12 col-sm-6 col-lg-3">
+            <div className="stat-card">
+              <div className="d-flex align-items-center justify-content-between">
+                <div>
+                  <div className="stat-number text-success">{formatCurrency(metrics.ventasGlobalesTotal)}</div>
+                  <div className="stat-label">Ventas Globales</div>
+                </div>
+                <div className="stat-icon"><i className="bi bi-cash-coin"></i></div>
+              </div>
+              <div className="small text-muted mt-2">
+                Hoy: <span className="fw-bold text-dark">{formatCurrency(metrics.ventasDelDiaTotal)}</span>
               </div>
             </div>
-
-            <h3 className="fw-bold mb-1">Iniciar sesión :</h3>
-            <p className="text-muted small mb-4">Ingresa tus credenciales para acceder al sistema</p>
-
-            {alertMsg && (
-              <div className="alert alert-warning py-2 px-3 small rounded-3 mb-3">
-                {alertMsg}
-              </div>
-            )}
-
-            <form onSubmit={handleLogin}>
-              <div className="kfc-input-group">
-                <div className="kfc-input-icon-box">
-                  <i className="bi bi-person"></i>
-                </div>
-                <input
-                  type="email"
-                  className="kfc-input-field"
-                  placeholder="Correo institucional (@kfc.sv)"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                />
-              </div>
-
-              <div className="kfc-input-group">
-                <div className="kfc-input-icon-box">
-                  <i className="bi bi-lock"></i>
-                </div>
-                <input
-                  type="password"
-                  className="kfc-input-field"
-                  placeholder="Contraseña"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                />
-              </div>
-
-              <button type="submit" className="btn-kfc-dark mt-2" disabled={loading}>
-                {loading ? 'Verificando...' : 'Entrar'}
-              </button>
-            </form>
-
-            <div className="text-center mt-4">
-              <span className="fw-semibold">¿No tienes cuenta? </span>
-              <button
-                onClick={() => { setStep('register'); setAlertMsg(null); }}
-                className="text-danger fw-bold border-0 bg-transparent p-0"
-                style={{ cursor: 'pointer' }}
-              >
-                Iniciar
-              </button>
-            </div>
-
           </div>
-        </div>
-      )}
 
-      {step === 'register' && (
-        <div className="kfc-auth-card" style={{ maxWidth: '600px' }}>
-          <div style={{ height: '140px', overflow: 'hidden', position: 'relative', background: '#333' }}>
-            <img
-              src="https://images.unsplash.com/photo-1626082927389-6cd097cdc6ec?w=800&q=80"
-              alt="Pollo frito KFC"
-              style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.85 }}
-            />
-            <div
-              style={{
-                position: 'absolute',
-                inset: 0,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                background: 'rgba(0,0,0,0.35)'
-              }}
-            >
-              <div className="bg-white px-3 py-1 rounded-2 shadow">
-                <span className="text-danger fs-3" style={{ fontWeight: 900 }}>KFC</span>
+          <div className="col-12 col-sm-6 col-lg-3">
+            <div className="stat-card">
+              <div className="d-flex align-items-center justify-content-between">
+                <div>
+                  <div className="stat-number">{orders.length}</div>
+                  <div className="stat-label">Pedidos Totales</div>
+                </div>
+                <div className="stat-icon"><i className="bi bi-receipt"></i></div>
+              </div>
+              <div className="small text-muted mt-2">
+                <span className="badge bg-warning text-dark">{metrics.pedidosPendientesCount} pendientes</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="col-12 col-sm-6 col-lg-3">
+            <div className="stat-card" style={{ borderColor: metrics.productosCriticosCount > 0 ? '#E4002B' : undefined }}>
+              <div className="d-flex align-items-center justify-content-between">
+                <div>
+                  <div className={`stat-number ${metrics.productosCriticosCount > 0 ? 'text-danger' : 'text-success'}`}>
+                    {metrics.productosCriticosCount}
+                  </div>
+                  <div className="stat-label">Alertas de Stock Crítico</div>
+                </div>
+                <div className={`stat-icon ${metrics.productosCriticosCount > 0 ? 'bg-danger-subtle text-danger' : 'text-success'}`}>
+                  <i className="bi bi-exclamation-triangle"></i>
+                </div>
+              </div>
+              <div className="small text-muted mt-2">
+                Productos con menos de 5 unidades
               </div>
             </div>
           </div>
+        </div>
 
-          <div className="p-4">
-            <h4 className="fw-bold text-center mb-3">Ingrese sus datos :</h4>
+        {activeTab === 'menu' && (
+          <div className="d-flex flex-column flex-grow-1">
+            <div className="text-center my-2">
+              <h1 className="kfc-script-font display-5 mb-1">Módulos Administrativos</h1>
+              <p className="text-muted">Supervisión operativa de inventario, auditoría de ventas y personal</p>
+            </div>
 
-            {alertMsg && (
-              <div className="alert alert-warning py-2 px-3 small rounded-3 mb-3">
-                {alertMsg}
-              </div>
-            )}
-
-            <form onSubmit={handleRegister}>
-              <div className="row g-2">
-                <div className="col-12 col-md-6 mb-2">
-                  <label className="form-label small fw-bold mb-1">Nombre :</label>
-                  <input
-                    type="text"
-                    className="form-control"
-                    style={{ background: '#EAEAEA', border: 'none' }}
-                    value={registerData.nombre}
-                    onChange={(e) => setRegisterData({ ...registerData, nombre: e.target.value })}
-                    required
-                  />
-                </div>
-
-                <div className="col-12 col-md-6 mb-2">
-                  <label className="form-label small fw-bold mb-1">Fecha de nacimiento:</label>
-                  <input
-                    type="date"
-                    className="form-control"
-                    style={{ background: '#EAEAEA', border: 'none' }}
-                    value={registerData.fechaNacimiento}
-                    onChange={(e) => setRegisterData({ ...registerData, fechaNacimiento: e.target.value })}
-                  />
-                </div>
-
-                <div className="col-12 col-md-6 mb-2">
-                  <label className="form-label small fw-bold mb-1">Número de teléfono:</label>
-                  <input
-                    type="tel"
-                    className="form-control"
-                    style={{ background: '#EAEAEA', border: 'none' }}
-                    value={registerData.telefono}
-                    onChange={(e) => setRegisterData({ ...registerData, telefono: e.target.value })}
-                  />
-                </div>
-
-                <div className="col-12 col-md-6 mb-2">
-                  <label className="form-label small fw-bold mb-1">Dirección :</label>
-                  <input
-                    type="text"
-                    className="form-control"
-                    style={{ background: '#EAEAEA', border: 'none' }}
-                    value={registerData.direccion}
-                    onChange={(e) => setRegisterData({ ...registerData, direccion: e.target.value })}
-                  />
-                </div>
-
-                <div className="col-12 col-md-6 mb-2">
-                  <label className="form-label small fw-bold mb-1">Correo:</label>
-                  <input
-                    type="email"
-                    className="form-control"
-                    style={{ background: '#EAEAEA', border: 'none' }}
-                    value={registerData.email}
-                    onChange={(e) => setRegisterData({ ...registerData, email: e.target.value })}
-                    required
-                  />
-                </div>
-
-                <div className="col-12 col-md-6 mb-3">
-                  <label className="form-label small fw-bold mb-1">Contraseña:</label>
-                  <input
-                    type="password"
-                    className="form-control"
-                    style={{ background: '#EAEAEA', border: 'none' }}
-                    value={registerData.password}
-                    onChange={(e) => setRegisterData({ ...registerData, password: e.target.value })}
-                    required
-                  />
+            <div className="row g-4 my-auto justify-content-center">
+              <div className="col-12 col-sm-6 col-lg-3">
+                <div className="admin-action-btn-card" onClick={() => setActiveTab('inventario')}>
+                  <div className="admin-card-tag">Inventario disponible</div>
+                  <div className="d-flex align-items-center justify-content-center flex-grow-1 py-3">
+                    <img
+                      src="https://images.unsplash.com/photo-1626082927389-6cd097cdc6ec?w=300&q=80"
+                      alt="Inventario"
+                      style={{ maxHeight: '110px', objectFit: 'contain' }}
+                      onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = placeholderImg; }}
+                    />
+                  </div>
+                  <span className="small text-muted fw-bold mt-2">
+                    {metrics.productosCriticosCount > 0 ? (
+                      <span className="text-danger"><i className="bi bi-bell-fill me-1"></i>{metrics.productosCriticosCount} productos críticos</span>
+                    ) : (
+                      'Stock en niveles óptimos'
+                    )}
+                  </span>
                 </div>
               </div>
 
-              <button type="submit" className="btn-kfc-red mt-2" disabled={loading}>
-                {loading ? 'Guardando...' : 'Aceptar'}
+              <div className="col-12 col-sm-6 col-lg-3">
+                <div className="admin-action-btn-card" onClick={() => setActiveTab('reportes')}>
+                  <div className="admin-card-tag">Reporte de ventas</div>
+                  <div className="d-flex align-items-center justify-content-center flex-grow-1 py-3">
+                    <i className="bi bi-briefcase-fill text-dark" style={{ fontSize: '4.5rem' }}></i>
+                    <i className="bi bi-graph-up-arrow text-danger ms-2" style={{ fontSize: '2.8rem' }}></i>
+                  </div>
+                  <span className="small text-muted fw-bold mt-2">
+                    Total: {formatCurrency(metrics.ventasGlobalesTotal)}
+                  </span>
+                </div>
+              </div>
+
+              <div className="col-12 col-sm-6 col-lg-3">
+                <div className="admin-action-btn-card" onClick={() => setActiveTab('pedidos')}>
+                  <div className="admin-card-tag">Consulta de pedidos</div>
+                  <div className="d-flex align-items-center justify-content-center flex-grow-1 py-3">
+                    <i className="bi bi-scooter text-dark" style={{ fontSize: '4.5rem' }}></i>
+                  </div>
+                  <span className="small text-muted fw-bold mt-2">{orders.length} pedidos auditados</span>
+                </div>
+              </div>
+
+              <div className="col-12 col-sm-6 col-lg-3">
+                <div className="admin-action-btn-card" onClick={() => setActiveTab('usuarios')}>
+                  <div className="admin-card-tag" style={{ background: '#333' }}>Gestión de Usuarios</div>
+                  <div className="d-flex align-items-center justify-content-center flex-grow-1 py-3">
+                    <i className="bi bi-people-fill text-secondary" style={{ fontSize: '4rem' }}></i>
+                  </div>
+                  <span className="small text-muted fw-bold mt-2">{usersList.length} cuentas activas</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'inventario' && (
+          <div className="kfc-content-card d-flex flex-column flex-grow-1">
+            <div className="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3 pb-2 border-bottom">
+              <div>
+                <h2 className="kfc-script-font fs-2 m-0 text-capitalize">
+                  Inventario {currentCategory}
+                </h2>
+                <span className="small text-muted">Control de existencias y alertas de reposición</span>
+              </div>
+              <button onClick={() => setActiveTab('menu')} className="btn btn-outline-danger btn-sm px-3">
+                <i className="bi bi-arrow-left me-1"></i> Volver al panel
               </button>
+            </div>
 
-              <div className="text-center mt-3">
+            <div className="d-flex gap-2 overflow-auto pb-2 mb-4">
+              {categories.map(c => (
                 <button
-                  type="button"
-                  onClick={() => { setStep('login'); setAlertMsg(null); }}
-                  className="btn btn-link text-muted btn-sm text-decoration-none"
+                  key={c.id}
+                  onClick={() => setCurrentCategory(c.id)}
+                  className={`btn btn-sm text-nowrap rounded-pill px-3 py-1 ${currentCategory === c.id ? 'btn-danger fw-bold' : 'btn-light border'}`}
                 >
-                  ← Volver a Iniciar sesión
+                  {c.name}
                 </button>
-              </div>
-            </form>
+              ))}
+            </div>
+
+            <div className="table-responsive">
+              <table className="table table-hover align-middle">
+                <thead className="table-light">
+                  <tr>
+                    <th>Código</th>
+                    <th>Producto</th>
+                    <th>Categoría</th>
+                    <th>Precio</th>
+                    <th>Stock Actual</th>
+                    <th>Condición</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredProducts.map(prod => {
+                    const esCritico = prod.stock < 5;
+                    const agotado = prod.stock <= 0;
+
+                    return (
+                      <tr key={prod.id} className={agotado ? 'table-danger' : (esCritico ? 'table-warning' : '')}>
+                        <td><code>{prod.id}</code></td>
+                        <td>
+                          <div className="d-flex align-items-center gap-2">
+                            <img src={prod.img} alt={prod.nombre} style={{ width: 40, height: 40, objectFit: 'cover', borderRadius: 6 }} onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = placeholderImg; }} />
+                            <div>
+                              <div className="fw-semibold">{prod.nombre}</div>
+                              <small className="text-muted">{prod.descripcion}</small>
+                            </div>
+                          </div>
+                        </td>
+                        <td><span className="badge bg-light text-dark border">{prod.categoria}</span></td>
+                        <td className="fw-bold">{formatCurrency(prod.precio)}</td>
+                        <td className="fw-bold">{prod.stock} u.</td>
+                        <td>
+                          {agotado ? (
+                            <span className="badge bg-danger">Agotado</span>
+                          ) : esCritico ? (
+                            <span className="badge bg-warning text-dark">
+                              <i className="bi bi-exclamation-triangle-fill me-1"></i>Stock Crítico
+                            </span>
+                          ) : (
+                            <span className="badge bg-success">Óptimo</span>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
           </div>
-        </div>
-      )}
+        )}
+
+        {activeTab === 'reportes' && (
+          <div className="kfc-content-card d-flex flex-column flex-grow-1">
+            <div className="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+              <h2 className="kfc-script-font fs-2 m-0">Reporte Financiero y Ventas</h2>
+              <button onClick={() => setActiveTab('menu')} className="btn btn-outline-danger btn-sm px-3">
+                <i className="bi bi-arrow-left me-1"></i> Volver
+              </button>
+            </div>
+
+            <div className="row g-3 mb-4">
+              <div className="col-12 col-md-4">
+                <div className="p-3 bg-light rounded-3 border">
+                  <div className="text-muted small">Ventas Totales (Histórico)</div>
+                  <div className="fs-3 fw-bold text-success">{formatCurrency(metrics.ventasGlobalesTotal)}</div>
+                </div>
+              </div>
+              <div className="col-12 col-md-4">
+                <div className="p-3 bg-light rounded-3 border">
+                  <div className="text-muted small">Ventas de Hoy</div>
+                  <div className="fs-3 fw-bold text-dark">{formatCurrency(metrics.ventasDelDiaTotal)}</div>
+                </div>
+              </div>
+              <div className="col-12 col-md-4">
+                <div className="p-3 bg-light rounded-3 border">
+                  <div className="text-muted small">Órdenes Pagadas / Entregadas</div>
+                  <div className="fs-3 fw-bold text-primary">{orders.filter(o => o.estado !== 'cancelado').length}</div>
+                </div>
+              </div>
+            </div>
+
+            <MonthlySalesChart />
+
+            <div className="table-responsive">
+              <table className="table table-hover align-middle">
+                <thead className="table-light">
+                  <tr>
+                    <th>Orden</th>
+                    <th>Fecha y Hora</th>
+                    <th>Cliente</th>
+                    <th>Atendido Por</th>
+                    <th>Pago</th>
+                    <th className="text-end">Monto Total</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {orders.map(ord => (
+                    <tr key={ord.id}>
+                      <td><code>{ord.id}</code></td>
+                      <td>{formatDate(ord.fecha)}</td>
+                      <td className="fw-semibold">{ord.cliente}</td>
+                      <td><small>{ord.cajeroNombre || ord.cajeroId}</small></td>
+                      <td><span className="badge bg-light text-dark border">{ord.tipoPago}</span></td>
+                      <td className="text-end fw-bold text-danger">{formatCurrency(ord.total)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'pedidos' && (
+          <div className="kfc-content-card d-flex flex-column flex-grow-1">
+            <div className="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+              <h2 className="kfc-script-font fs-2 m-0">Auditoría de Pedidos</h2>
+              <button onClick={() => setActiveTab('menu')} className="btn btn-outline-danger btn-sm px-3">
+                <i className="bi bi-arrow-left me-1"></i> Volver
+              </button>
+            </div>
+
+            <div className="row g-3 overflow-auto">
+              {orders.map(ord => {
+                const badgeClasses = {
+                  'pendiente': 'bg-warning text-dark',
+                  'en_preparacion': 'bg-info text-dark',
+                  'listo': 'bg-primary text-white',
+                  'entregado': 'bg-success text-white',
+                  'cancelado': 'bg-danger text-white'
+                };
+
+                return (
+                  <div key={ord.id} className="col-12 col-md-6 col-lg-4">
+                    <div className="card h-100 shadow-sm border rounded-3">
+                      <div className="card-header bg-white d-flex justify-content-between align-items-center py-2">
+                        <span className="fw-bold text-danger">{ord.id}</span>
+                        <span className={`badge ${badgeClasses[ord.estado] || 'bg-secondary'}`}>
+                          {ord.estado.toUpperCase()}
+                        </span>
+                      </div>
+                      <div className="card-body p-3">
+                        <div className="small text-muted mb-2">
+                          Cliente: <strong>{ord.cliente}</strong> • {formatDate(ord.fecha)}
+                        </div>
+                        <ul className="list-unstyled small mb-3">
+                          {ord.items.map((it, idx) => (
+                            <li key={idx} className="d-flex justify-content-between py-1 border-bottom border-light">
+                              <span>{it.quantity}x {it.nombre}</span>
+                              <span className="fw-semibold">{formatCurrency(it.subtotal)}</span>
+                            </li>
+                          ))}
+                        </ul>
+                        <div className="d-flex justify-content-between fw-bold pt-1">
+                          <span>Total:</span>
+                          <span className="text-danger fs-5">{formatCurrency(ord.total)}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'usuarios' && (
+          <div className="kfc-content-card d-flex flex-column flex-grow-1">
+            <div className="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+              <h2 className="kfc-script-font fs-2 m-0">Gestión de Usuarios</h2>
+              <button onClick={() => setActiveTab('menu')} className="btn btn-outline-danger btn-sm px-3">
+                <i className="bi bi-arrow-left me-1"></i> Volver
+              </button>
+            </div>
+
+            <div className="table-responsive">
+              <table className="table table-hover align-middle">
+                <thead className="table-light">
+                  <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>Email</th>
+                    <th>Teléfono</th>
+                    <th>Rol</th>
+                    <th>Estado</th>
+                    <th>Registrado</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {usersList.map(u => (
+                    <tr key={u.id}>
+                      <td><code>{u.id}</code></td>
+                      <td className="fw-semibold">{u.nombre}</td>
+                      <td>{u.email}</td>
+                      <td>{u.telefono || '—'}</td>
+                      <td>
+                        <span className={`badge ${u.rol === 'admin' ? 'bg-danger' : 'bg-primary'}`}>
+                          {u.rol.toUpperCase()}
+                        </span>
+                      </td>
+                      <td>
+                        <span className="badge bg-success">Activo</span>
+                      </td>
+                      <td><small className="text-muted">{formatDate(u.creadoEn, false)}</small></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+      </main>
     </div>
   );
 }
