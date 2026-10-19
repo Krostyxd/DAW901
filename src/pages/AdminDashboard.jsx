@@ -25,6 +25,9 @@ export default function AdminDashboard() {
     p => p.categoria.toLowerCase() === currentCategory.toLowerCase()
   );
 
+  // small SVG placeholder (data URL) used when product images fail to load
+  const placeholderImg = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="60" height="40"><rect width="100%" height="100%" fill="%23f3f3f3"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-size="10" fill="%23888">no image</text></svg>';
+
   return (
     <div className="kfc-app-container">
       <Header title="Panel de Administración" showCart={false} />
@@ -120,6 +123,7 @@ export default function AdminDashboard() {
                       src="https://images.unsplash.com/photo-1626082927389-6cd097cdc6ec?w=300&q=80"
                       alt="Inventario"
                       style={{ maxHeight: '110px', objectFit: 'contain' }}
+                      onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = placeholderImg; }}
                     />
                   </div>
                   <span className="small text-muted fw-bold mt-2">
@@ -228,7 +232,7 @@ export default function AdminDashboard() {
                         <td><code>{prod.id}</code></td>
                         <td>
                           <div className="d-flex align-items-center gap-2">
-                            <img src={prod.img} alt={prod.nombre} style={{ width: 40, height: 40, objectFit: 'cover', borderRadius: 6 }} />
+                            <img src={prod.img} alt={prod.nombre} style={{ width: 40, height: 40, objectFit: 'cover', borderRadius: 6 }} onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = placeholderImg; }} />
                             <div>
                               <div className="fw-semibold">{prod.nombre}</div>
                               <small className="text-muted">{prod.descripcion}</small>
