@@ -1,16 +1,88 @@
 import { useState } from 'react';
+import { Bar } from 'react-chartjs-2';
+import {
+  BarElement,
+  CategoryScale,
+  Chart as ChartJS,
+  Legend,
+  LinearScale,
+  Tooltip
+} from 'chart.js';
 import Header from '../components/Header';
 import { useAuth } from '../context/AuthContext';
 import { formatCurrency, formatDate } from '../services/storageService';
+
+ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip, Legend);
+
+const MONTH_LABELS = [
+  'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+  'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+];
 
 export default function AdminDashboard() {
   const { user, products, orders, getUsers, calculateMetrics } = useAuth();
 
   const [activeTab, setActiveTab] = useState('menu');
   const [currentCategory, setCurrentCategory] = useState('Combos');
+  const [selectedSalesYear, setSelectedSalesYear] = useState(null);
 
   const usersList = getUsers();
   const metrics = calculateMetrics();
+  const currentYear = new Date().getFullYear();
+  const datedOrders = orders.filter(order => (
+    order.fecha && !Number.isNaN(new Date(order.fecha).getTime())
+  ));
+  const validSalesOrders = datedOrders.filter(order => order.estado !== 'cancelado');
+  const salesYears = [...new Set([
+    currentYear,
+    ...datedOrders.map(order => new Date(order.fecha).getFullYear())
+  ])].sort((a, b) => b - a);
+  const latestSalesYear = validSalesOrders.reduce((latestYear, order) => {
+    const orderYear = new Date(order.fecha).getFullYear();
+    return latestYear === null ? orderYear : Math.max(latestYear, orderYear);
+  }, null);
+  const reportYear = selectedSalesYear ?? latestSalesYear ?? currentYear;
+  const monthlySales = Array(12).fill(0);
+
+  validSalesOrders.forEach(order => {
+    const orderDate = new Date(order.fecha);
+    if (orderDate.getFullYear() !== reportYear) return;
+    monthlySales[orderDate.getMonth()] += Number(order.total) || 0;
+  });
+
+  const monthlySalesChartData = {
+    labels: MONTH_LABELS,
+    datasets: [{
+      label: 'Ventas',
+      data: monthlySales,
+      backgroundColor: 'rgba(228, 0, 43, 0.72)',
+      borderColor: '#E4002B',
+      borderWidth: 1,
+      borderRadius: 6,
+      maxBarThickness: 42
+    }]
+  };
+
+  const monthlySalesChartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        callbacks: {
+          label: context => ` ${formatCurrency(context.parsed.y)}`
+        }
+      }
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        ticks: {
+          callback: value => formatCurrency(value)
+        }
+      }
+    }
+  };
 
   const categories = [
     { id: 'Combos', name: 'Combos' },
@@ -290,6 +362,35 @@ export default function AdminDashboard() {
                 </div>
               </div>
             </div>
+
+            <section className="mb-4" aria-labelledby="monthly-sales-heading">
+              <div className="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+                <div>
+                  <h3 id="monthly-sales-heading" className="h5 fw-bold mb-1">Ventas mensuales</h3>
+                  <span className="small text-muted">
+                    Total de {reportYear}: {formatCurrency(monthlySales.reduce((total, sales) => total + sales, 0))}
+                  </span>
+                </div>
+                <label className="d-flex align-items-center gap-2 small fw-semibold" htmlFor="sales-year">
+                  Año
+                  <select
+                    id="sales-year"
+                    className="form-select form-select-sm"
+                    value={reportYear}
+                    onChange={event => setSelectedSalesYear(Number(event.target.value))}
+                  >
+                    {salesYears.map(year => <option key={year} value={year}>{year}</option>)}
+                  </select>
+                </label>
+              </div>
+              <div className="sales-chart-container">
+                <Bar
+                  data={monthlySalesChartData}
+                  options={monthlySalesChartOptions}
+                  aria-label={`Ventas mensuales del año ${reportYear}`}
+                />
+              </div>
+            </section>
 
             <div className="table-responsive">
               <table className="table table-hover align-middle">

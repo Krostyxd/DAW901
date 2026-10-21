@@ -385,6 +385,12 @@ body {
   box-shadow: var(--kfc-shadow-sm);
 }
 
+.sales-chart-container {
+  height: 320px;
+  position: relative;
+  width: 100%;
+}
+
 @media (max-width: 576px) {
   .kfc-header-bar {
     min-height: 70px;
@@ -405,5 +411,9 @@ body {
 
   .kfc-main-content {
     padding: 1rem 0.75rem;
+  }
+
+  .sales-chart-container {
+    height: 260px;
   }
 }

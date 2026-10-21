@@ -220,3 +220,4 @@ export function isPositiveNumber(val) {
 export function isNonEmptyString(str) {
   return typeof str === 'string' && str.trim().length > 0;
 }
+
